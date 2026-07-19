@@ -1,406 +1,133 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Identidad & Dashboard Roleplay</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0d111c;
-            color: #e2e8f0;
-            overflow-x: hidden;
-        }
-        .gaming-card {
-            background: linear-gradient(145deg, #161b26, #11151f);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-        .neon-border-blue:hover {
-            border-color: #00f0ff;
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-        .neon-border-purple:hover {
-            border-color: #a855f7;
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
-            transition: all 0.3s ease;
-        }
-        .dni-card {
-            width: 500px;
-            height: 320px;
-            background: linear-gradient(135deg, #eef4f9 0%, #cbe0f0 40%, #b5cef1 100%);
-            border-radius: 16px;
-            color: #1e293b;
-            position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .dni-title {
-            color: #0f4c81;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-        }
-        .dni-label {
-            color: #3b82f6;
-            font-size: 8px;
-            text-transform: uppercase;
-            margin-bottom: -1px;
-        }
-        .dni-value {
-            color: #0f172a;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-    </style>
-</head>
-<body class="p-4 md:p-8 flex justify-center items-center min-h-screen">
+// CONFIGURACIÓN CON TUS CLAVES API DE SUPABASE
+const SUPABASE_URL = 'https://rsotfluwlqurluwiwado.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_lqVQ_MyuboN65x2_dSBgHA_v6asl_Zn';
 
-    <!-- PANTALLA 1: REGISTRO DE CIUDADANO -->
-    <div id="screen-register" class="w-full max-w-md gaming-card rounded-2xl p-6 border border-slate-800">
-        <div class="text-center mb-6">
-            <h2 class="text-2xl font-bold tracking-wide text-white flex justify-center items-center gap-2">
-                <span class="w-3 h-3 bg-cyan-400 rounded-full animate-pulse"></span> REGISTRO CIVIL RP
-            </h2>
-            <p class="text-gray-400 text-xs mt-1">Crea la identidad legal de tu personaje para ingresar al servidor</p>
-        </div>
+let _supabase = null;
+if (typeof supabase !== 'undefined') {
+    _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
 
-        <form id="form-registro" onsubmit="procesarRegistro(event)" class="space-y-4">
-            <div>
-                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1">Nombres</label>
-                <input type="text" id="reg-nombres" required placeholder="Ej: Ignacio Andrés" class="w-full bg-[#1b2230] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-400 text-sm">
-            </div>
-            <div>
-                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1">Apellidos</label>
-                <input type="text" id="reg-apellidos" required placeholder="Ej: Muñoz Olguín" class="w-full bg-[#1b2230] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-400 text-sm">
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1">F. de Nacimiento</label>
-                    <input type="date" id="reg-fecha" required class="w-full bg-[#1b2230] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-400 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1">Sexo</label>
-                    <select id="reg-sexo" class="w-full bg-[#1b2230] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-400 text-sm">
-                        <option value="M">Masculino (M)</option>
-                        <option value="F">Femenino (F)</option>
-                    </select>
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1">Nacionalidad</label>
-                <input type="text" id="reg-nacionalidad" value="CHILENA" required class="w-full bg-[#1b2230] border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-400 text-sm">
-            </div>
+// 1. REVISAR SI YA EXISTE UN REGISTRO AL CARGAR LA PÁGINA
+window.addEventListener('DOMContentLoaded', () => {
+    // Actualizar reloj y fecha
+    document.getElementById('real-time').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    document.getElementById('real-date').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
-            <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-2.5 rounded-lg transition duration-300 text-sm tracking-wide shadow-lg shadow-cyan-500/20">
-                GENERAR CÉDULA DE IDENTIDAD
-            </button>
-        </form>
-    </div>
-
-    <!-- PANTALLA 2: ENTREGA Y VISTA DEL DNI -->
-    <div id="screen-dni" class="hidden flex flex-col items-center space-y-6">
-        <div class="text-center">
-            <h2 class="text-xl font-bold text-emerald-400">¡Identidad Generada Exitosamente!</h2>
-            <p class="text-xs text-gray-400">Guarda tu documento oficial antes de entrar al panel del ciudadano</p>
-        </div>
-
-        <div class="dni-card p-4 relative overflow-hidden select-none">
-            <div class="absolute inset-0 opacity-15 pointer-events-none flex items-end justify-center">
-                <div class="w-full h-1/2 bg-gradient-to-t from-blue-900 to-transparent"></div>
-            </div>
-
-            <div class="flex justify-between items-start border-b border-blue-300/40 pb-1.5">
-                <div class="flex items-center gap-1.5">
-                    <div class="text-[7px] leading-tight text-blue-800 font-black">CÉDULA DE<br>IDENTIDAD</div>
-                    <div class="w-4 h-3 bg-red-600 flex flex-col relative border border-white/40">
-                        <div class="h-1/2 bg-white flex"><div class="w-1/3 bg-blue-800 relative"><span class="absolute text-[6px] text-white top-[-2px] left-[1px]">★</span></div></div>
-                    </div>
-                </div>
-                <div class="text-center flex-1">
-                    <div class="dni-title text-sm tracking-wider">REPÚBLICA DE CHILE</div>
-                    <div class="text-[7px] text-blue-900/80 uppercase font-bold tracking-tight">Servicio de Registro Civil e Identificación</div>
-                </div>
-                <div class="opacity-40 text-blue-900 text-right text-xs">🧬</div>
-            </div>
-
-            <div class="grid grid-cols-12 gap-2 mt-3 h-[210px]">
-                <div class="col-span-4 flex flex-col justify-between">
-                    <div class="bg-gradient-to-b from-slate-300 to-slate-400 border-2 border-white rounded-lg shadow-inner overflow-hidden aspect-square flex items-center justify-center relative">
-                        <div class="text-center text-4xl">😎</div>
-                        <div class="absolute bottom-0 bg-black/30 w-full text-[8px] text-white text-center">FOTO OFICIAL</div>
-                    </div>
-                    <div>
-                        <div class="text-[8px] text-blue-900/70 font-bold mb-[-3px]">RUN</div>
-                        <div id="dni-run" class="text-sm font-black text-slate-800">19.482.391-K</div>
-                    </div>
-                </div>
-
-                <div class="col-span-8 grid grid-cols-2 gap-y-1.5 gap-x-1 pl-1">
-                    <div class="col-span-2">
-                        <div class="dni-label">Apellidos</div>
-                        <div id="dni-apellidos" class="dni-value">MUÑOZ OLGUÍN</div>
-                    </div>
-                    <div class="col-span-2">
-                        <div class="dni-label">Nombres</div>
-                        <div id="dni-nombres" class="dni-value">IGNACIO ANDRÉS</div>
-                    </div>
-                    <div>
-                        <div class="dni-label">Nacionalidad</div>
-                        <div id="dni-nacionalidad" class="dni-value">CHILENA</div>
-                    </div>
-                    <div>
-                        <div class="dni-label">Sexo</div>
-                        <div id="dni-sexo" class="dni-value">M</div>
-                    </div>
-                    <div>
-                        <div class="dni-label">Fecha de Nacimiento</div>
-                        <div id="dni-nacimiento" class="dni-value">11 ABR 2003</div>
-                    </div>
-                    <div>
-                        <div class="dni-label">Número Documento</div>
-                        <div id="dni-documento" class="dni-value font-mono">6910779</div>
-                    </div>
-                    <div>
-                        <div class="dni-label">Fecha de Emisión</div>
-                        <div class="dni-value text-[11px]">19 JUL 2026</div>
-                    </div>
-                    <div>
-                        <div class="dni-label">Fecha de Vencimiento</div>
-                        <div class="dni-value text-[11px]">19 JUL 2036</div>
-                    </div>
-                    <div class="col-span-2 mt-1 border-t border-dashed border-blue-400/30 pt-1">
-                        <div class="dni-label">Firma del Titular</div>
-                        <div id="dni-firma" class="font-serif italic text-xs text-blue-950 font-bold tracking-widest mt-0.5">IgnM</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <button onclick="entrarAlDashboard()" class="bg-slate-100 hover:bg-white text-slate-900 font-bold px-6 py-3 rounded-xl shadow-lg transition transform hover:-translate-y-0.5 tracking-wide text-sm">
-            INGRESAR AL PANEL DE CIUDADANO →
-        </button>
-    </div>
-
-    <!-- PANTALLA 3: DASHBOARD PRINCIPAL ACTUALIZADO (Sin Ranking ni Pase de Lealtad) -->
-    <div id="screen-dashboard" class="hidden w-full max-w-5xl space-y-4">
+    // Cargar datos guardados previamente
+    const usuarioGuardado = localStorage.getItem('usuario_rp');
+    
+    if (usuarioGuardado) {
+        const datos = JSON.parse(usuarioGuardado);
         
-        <!-- HEADER DE CIUDADANO -->
-        <div class="gaming-card rounded-2xl p-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-4 w-full md:w-auto">
-                <div class="relative">
-                    <div class="w-16 h-16 bg-slate-700 rounded-full border-2 border-cyan-500 overflow-hidden flex items-center justify-center text-3xl">
-                        😎
-                    </div>
-                    <div class="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-[#161b26] rounded-full"></div>
-                </div>
-                <div>
-                    <h1 id="dash-username" class="text-xl font-bold tracking-wide text-white">Ignacio Muñoz</h1>
-                    <div class="flex flex-wrap gap-1.5 mt-1 text-xs font-semibold">
-                        <span class="bg-blue-600/20 text-blue-400 px-2.5 py-0.5 rounded border border-blue-500/30 flex items-center gap-1">💼 Cesante</span>
-                        <span class="bg-amber-600/20 text-amber-400 px-2.5 py-0.5 rounded border border-amber-500/30">Civil</span>
-                        <span class="bg-emerald-600/20 text-emerald-400 px-2.5 py-0.5 rounded border border-emerald-500/30">👤 T_Tutos11</span>
-                        <span class="bg-purple-600/20 text-purple-400 px-2.5 py-0.5 rounded border border-purple-500/30">💬 _tomv5o_</span>
-                    </div>
-                </div>
-            </div>
+        // Cargar nombre en el Dashboard directamente
+        document.getElementById('dash-username').innerText = datos.nombreMostrado;
 
-            <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-gray-400 w-full md:w-auto justify-end">
-                <div class="text-right">
-                    <span class="text-amber-500 font-bold">Nivel Ciudadano</span>
-                    <div class="text-xl font-bold font-sans text-white text-right">0</div>
-                    <span class="text-[10px]">0h 0m jugadas</span>
-                </div>
-                <div class="bg-slate-800/40 p-2 rounded-lg border border-slate-700/50 flex items-center gap-2">
-                    🕒 <span id="real-time">16:01 PM</span>
-                </div>
-                <div class="bg-slate-800/40 p-2 rounded-lg border border-slate-700/50 flex items-center gap-2">
-                    📅 <span id="real-date">Dom 19 Jul 2026</span>
-                </div>
-            </div>
-        </div>
+        // Ocultar registro e ir directamente al Dashboard (o DNI si prefieres)
+        document.getElementById('screen-register').classList.add('hidden');
+        document.getElementById('screen-dashboard').classList.remove('hidden');
+        document.body.classList.remove('items-center');
+    }
+});
 
-        <!-- SECCIÓN DE ECONOMÍA (EXPANDIDA COMPLETAMENTE) -->
-        <div class="gaming-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between min-h-[140px]">
-            <div class="flex justify-between items-center">
-                <div>
-                    <span class="text-xs uppercase tracking-wider text-gray-400">Balance Total Disponible</span>
-                    <h3 class="text-4xl font-extrabold text-white mt-1 font-mono tracking-tight">$150.000</h3>
-                    <div class="text-xs text-emerald-400 flex items-center gap-1 mt-1.5">
-                        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span> Saldo Limpio en cuenta bancaria
-                    </div>
-                </div>
-                <div class="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-2xl text-emerald-400">💵</div>
-            </div>
-            <!-- Gráfico Lineal -->
-            <div class="w-full h-8 mt-4 relative">
-                <svg class="w-full h-full" viewBox="0 0 100 10" preserveAspectRatio="none">
-                    <path d="M0,10 Q25,6 50,5 T100,2" fill="none" stroke="#10b981" stroke-width="2"></path>
-                </svg>
-                <div class="text-[10px] text-emerald-400 absolute bottom-0 right-0 font-mono">+20.0% esta semana</div>
-            </div>
-        </div>
+function formatFechaChilena(dateString) {
+    const meses = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "11 ABR 2003";
+    return `${d.getDate() + 1} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+}
 
-        <!-- SECCIÓN DE ACCESOS RÁPIDOS (DISTRIBUIDA EN RECUADRO COMPLETO) -->
-        <div class="space-y-3">
-            <div class="flex justify-between items-center">
-                <h3 class="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                    🎛️ Módulos y Accesos Rápidos
-                </h3>
-                <div class="flex bg-slate-800/60 p-0.5 rounded-lg text-xs border border-slate-700/50">
-                    <button class="bg-blue-600 text-white px-4 py-1 rounded-md font-medium">Principales</button>
-                    <button class="text-gray-400 px-4 py-1 rounded-md font-medium hover:text-white">Servicios</button>
-                </div>
-            </div>
+function generarRunAleatorio() {
+    const baseRun = Math.floor(Math.random() * (25000000 - 15000000) + 15000000);
+    let M = 0, S = 1, T = baseRun;
+    for (; T; T = Math.floor(T / 10)) {
+        S = (S + T % 10 * (9 - M++ % 6)) % 11;
+    }
+    const dv = S ? (S - 1).toString() : 'K';
+    const runStr = baseRun.toString();
+    return runStr.slice(0, 2) + '.' + runStr.slice(2, 5) + '.' + runStr.slice(5, 8) + '-' + dv;
+}
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <!-- Banco Central -->
-                <div class="gaming-card p-4 rounded-xl flex items-center justify-between cursor-pointer neon-border-blue transition">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-blue-500/10 text-blue-400 rounded-lg text-xl">🏦</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white">Banco Central</h4>
-                            <p class="text-[11px] text-gray-400">Saldo y transferencias</p>
-                        </div>
-                    </div>
-                    <span class="text-gray-500 text-xs">❯</span>
-                </div>
+async function procesarRegistro(event) {
+    event.preventDefault();
 
-                <!-- Mis Pertenencias -->
-                <div class="gaming-card p-4 rounded-xl flex items-center justify-between cursor-pointer neon-border-purple transition">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-purple-500/10 text-purple-400 rounded-lg text-xl">🚗</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white">Mis Pertenencias</h4>
-                            <p class="text-[11px] text-gray-400">Vehículos y propiedades</p>
-                        </div>
-                    </div>
-                    <span class="text-gray-500 text-xs">❯</span>
-                </div>
+    const btnSubmit = document.getElementById('btn-submit');
+    btnSubmit.innerText = "GUARDANDO EN BASE DE DATOS...";
+    btnSubmit.disabled = true;
 
-                <!-- Mercado -->
-                <div class="gaming-card p-4 rounded-xl flex items-center justify-between cursor-pointer neon-border-purple transition">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-purple-500/10 text-purple-400 rounded-lg text-xl">🛍️</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white">Mercado</h4>
-                            <p class="text-[11px] text-gray-400">Compra y vende artículos</p>
-                        </div>
-                    </div>
-                    <span class="text-gray-500 text-xs">❯</span>
-                </div>
+    const nombres = document.getElementById('reg-nombres').value;
+    const apellidos = document.getElementById('reg-apellidos').value;
+    const fechaNac = document.getElementById('reg-fecha').value;
+    const sexo = document.getElementById('reg-sexo').value;
+    const nacionalidad = document.getElementById('reg-nacionalidad').value;
 
-                <!-- Casino -->
-                <div class="gaming-card p-4 rounded-xl flex items-center justify-between cursor-pointer neon-border-blue transition">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-amber-500/10 text-amber-400 rounded-lg text-xl">💎</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white">Casino</h4>
-                            <p class="text-[11px] text-gray-400">Juega y gana premios</p>
-                        </div>
-                    </div>
-                    <span class="text-gray-500 text-xs">❯</span>
-                </div>
+    const runGenerado = generarRunAleatorio();
+    const numDocGenerado = Math.floor(Math.random() * (8999999 - 1000000) + 1000000).toString();
 
-                <!-- Tienda Premium -->
-                <div class="gaming-card p-4 rounded-xl flex items-center justify-between cursor-pointer neon-border-blue transition">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-lg text-xl">🛒</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white">Tienda</h4>
-                            <p class="text-[11px] text-gray-400">Artículos premium</p>
-                        </div>
-                    </div>
-                    <span class="text-gray-500 text-xs">❯</span>
-                </div>
+    // GUARDADO EN SUPABASE
+    if (_supabase) {
+        const { data, error } = await _supabase
+            .from('dnis')
+            .insert([
+                { 
+                    run: runGenerado, 
+                    nombres: nombres.toUpperCase(), 
+                    apellidos: apellidos.toUpperCase(), 
+                    fecha_nacimiento: fechaNac, 
+                    sexo: sexo, 
+                    nacionalidad: nacionalidad.toUpperCase(),
+                    num_documento: numDocGenerado
+                }
+            ]);
 
-                <!-- Concesionario -->
-                <div class="gaming-card p-4 rounded-xl flex items-center justify-between cursor-pointer neon-border-blue transition">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-blue-500/10 text-blue-400 rounded-lg text-xl">🚘</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white">Concesionario</h4>
-                            <p class="text-[11px] text-gray-400">Adquiere nuevos vehículos</p>
-                        </div>
-                    </div>
-                    <span class="text-gray-500 text-xs">❯</span>
-                </div>
-
-                <!-- Portales Policiales -->
-                <div class="gaming-card p-4 rounded-xl flex items-center justify-between cursor-pointer neon-border-blue transition sm:col-span-2 md:col-span-3">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-slate-700/30 text-slate-300 rounded-lg text-xl">🛡️</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white">Portales Policiales</h4>
-                            <p class="text-[11px] text-gray-400">Consultas de registros e historial criminal: AUPOL • GEPOL • SNSM</p>
-                        </div>
-                    </div>
-                    <span class="text-gray-500 text-xs">▼</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SCRIPT DE LÓGICA -->
-    <script>
-        document.getElementById('real-time').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        document.getElementById('real-date').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-
-        function formatFechaChilena(dateString) {
-            const meses = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
-            const d = new Date(dateString);
-            if (isNaN(d.getTime())) return "11 ABR 2003";
-            return `${d.getDate() + 1} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+        if (error) {
+            alert("Error al conectar con Supabase: " + error.message);
+            btnSubmit.innerText = "GENERAR CÉDULA DE IDENTIDAD";
+            btnSubmit.disabled = false;
+            return;
         }
+    }
 
-        function generarRunAleatorio() {
-            const baseRun = Math.floor(Math.random() * (25000000 - 15000000) + 15000000);
-            let M = 0, S = 1, T = baseRun;
-            for (; T; T = Math.floor(T / 10)) {
-                S = (S + T % 10 * (9 - M++ % 6)) % 11;
-            }
-            const dv = S ? (S - 1).toString() : 'K';
-            const runStr = baseRun.toString();
-            return runStr.slice(0, 2) + '.' + runStr.slice(2, 5) + '.' + runStr.slice(5, 8) + '-' + dv;
-        }
+    const nombreMostrado = nombres.split(' ')[0] + " " + apellidos.split(' ')[0];
 
-        function procesarRegistro(event) {
-            event.preventDefault();
+    // 2. GUARDAR DATOS EN LA MEMORIA DEL NAVEGADOR
+    const datosUsuario = {
+        nombres: nombres.toUpperCase(),
+        apellidos: apellidos.toUpperCase(),
+        nombreMostrado: nombreMostrado,
+        run: runGenerado,
+        numDoc: numDocGenerado,
+        fechaNac: fechaNac,
+        sexo: sexo,
+        nacionalidad: nacionalidad.toUpperCase()
+    };
+    localStorage.setItem('usuario_rp', JSON.stringify(datosUsuario));
 
-            const nombres = document.getElementById('reg-nombres').value;
-            const apellidos = document.getElementById('reg-apellidos').value;
-            const fechaNac = document.getElementById('reg-fecha').value;
-            const sexo = document.getElementById('reg-sexo').value;
-            const nacionalidad = document.getElementById('reg-nacionalidad').value;
+    // Actualizar vista del DNI
+    document.getElementById('dni-nombres').innerText = nombres.toUpperCase();
+    document.getElementById('dni-apellidos').innerText = apellidos.toUpperCase();
+    document.getElementById('dni-nacimiento').innerText = formatFechaChilena(fechaNac);
+    document.getElementById('dni-sexo').innerText = sexo;
+    document.getElementById('dni-nacionalidad').innerText = nacionalidad.toUpperCase();
+    document.getElementById('dni-run').innerText = runGenerado;
+    document.getElementById('dni-documento').innerText = numDocGenerado;
+    
+    const iniciales = (nombres.charAt(0) + (apellidos.split(' ')[0] || '').slice(0, 3));
+    document.getElementById('dni-firma').innerText = iniciales;
 
-            document.getElementById('dni-nombres').innerText = nombres.toUpperCase();
-            document.getElementById('dni-apellidos').innerText = apellidos.toUpperCase();
-            document.getElementById('dni-nacimiento').innerText = formatFechaChilena(fechaNac);
-            document.getElementById('dni-sexo').innerText = sexo;
-            document.getElementById('dni-nacionalidad').innerText = nacionalidad.toUpperCase();
-            document.getElementById('dni-run').innerText = generarRunAleatorio();
-            document.getElementById('dni-documento').innerText = Math.floor(Math.random() * (8999999 - 1000000) + 1000000);
-            
-            const iniciales = (nombres.charAt(0) + (apellidos.split(' ')[0] || '').slice(0, 3));
-            document.getElementById('dni-firma').innerText = iniciales;
+    document.getElementById('dash-username').innerText = nombreMostrado;
 
-            document.getElementById('dash-username').innerText = nombres.split(' ')[0] + " " + apellidos.split(' ')[0];
+    document.getElementById('screen-register').classList.add('hidden');
+    document.getElementById('screen-dni').classList.remove('hidden');
+}
 
-            document.getElementById('screen-register').classList.add('hidden');
-            document.getElementById('screen-dni').classList.remove('hidden');
-        }
+function entrarAlDashboard() {
+    document.getElementById('screen-dni').classList.add('hidden');
+    document.getElementById('screen-dashboard').classList.remove('hidden');
+    document.body.classList.remove('items-center');
+}
 
-        function entrarAlDashboard() {
-            document.getElementById('screen-dni').classList.add('hidden');
-            document.getElementById('screen-dashboard').classList.remove('hidden');
-            document.body.classList.remove('items-center');
-        }
-    </script>
-</body>
-</html>
+// 3. OPCIONAL: FUNCIÓN PARA CERRAR SESIÓN / BORRAR PERSONAJE
+function cerrarSesion() {
+    localStorage.removeItem('usuario_rp');
+    location.reload(); // Recargar la página
+}
